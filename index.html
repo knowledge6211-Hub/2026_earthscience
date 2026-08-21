@@ -1,161 +1,649 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地震與 AI 學習之旅</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #e94560;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            transition: background 0.5s ease;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 50px 40px;
-            max-width: 650px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            z-index: 10;
-            position: relative;
-        }
-        .container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.3);
-        }
-        h1 {
-            color: #ffb830;
-            margin-bottom: 25px;
-            font-size: 2.2em;
-            text-shadow: 0 0 15px rgba(255, 184, 48, 0.4);
-            letter-spacing: 1px;
-        }
-        p {
-            line-height: 1.8;
-            font-size: 1.15em;
-            color: #e0e0e0;
-            text-align: justify;
-            margin-bottom: 15px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.8s forwards;
-        }
-        p:nth-child(2) { animation-delay: 0.2s; }
-        p:nth-child(3) { animation-delay: 0.4s; }
-        p:nth-child(4) { animation-delay: 0.6s; }
-        p:nth-child(5) { animation-delay: 0.8s; }
-
-        .highlight-eq { color: #ff6b6b; font-weight: bold; text-shadow: 0 0 8px rgba(255, 107, 107, 0.6); }
-        .highlight-ai { color: #00d2d3; font-weight: bold; text-shadow: 0 0 8px rgba(0, 210, 211, 0.6); }
-
-        .btn {
-            background: linear-gradient(45deg, #ff512f, #dd2476);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            padding: 15px 35px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 30px;
-            box-shadow: 0 4px 15px rgba(221, 36, 118, 0.4);
-            transition: all 0.3s ease;
-            animation: fadeInUp 1s forwards;
-            animation-delay: 1s;
-            opacity: 0;
-        }
-        .btn:hover {
-            box-shadow: 0 6px 25px rgba(221, 36, 118, 0.7);
-            transform: scale(1.05);
-        }
-
-        /* Earthquake Animation */
-        .shake {
-            animation: eq-shake 0.4s cubic-bezier(.36,.07,.19,.97) both infinite;
-            background: linear-gradient(135deg, #2a0800, #1a0000); /* Darker red background during EQ */
-        }
-        @keyframes eq-shake {
-            10%, 90% { transform: translate3d(-3px, 0, 0) rotate(-1deg); }
-            20%, 80% { transform: translate3d(4px, 0, 0) rotate(1deg); }
-            30%, 50%, 70% { transform: translate3d(-10px, 0, 0) rotate(-2deg); }
-            40%, 60% { transform: translate3d(10px, 0, 0) rotate(2deg); }
-        }
-
-        /* Fade in up animation */
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    <title>地球物理與 CLIL 防災探究 - 互動探索成果網頁</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        seismic: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    keyframes: {
+                        wave: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%, 60%': { transform: 'translateX(-6px)' },
+                            '40%, 80%': { transform: 'translateX(6px)' },
+                        }
+                    },
+                    animation: {
+                        wave: 'wave 3s ease-in-out infinite',
+                        shake: 'shake 0.5s ease-in-out',
+                    }
+                }
             }
         }
-
-        /* Seismic background decoration */
-        .seismic-line {
-            position: absolute;
-            bottom: 10%;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg"><polyline points="0,25 10,25 15,10 20,40 25,20 30,30 35,5 40,45 45,25 100,25" fill="none" stroke="%23ff6b6b" stroke-width="2" stroke-opacity="0.3"/></svg>') repeat-x;
-            background-size: 100px 50px;
-            animation: seismic-scroll 3s linear infinite;
-            z-index: 0;
-            opacity: 0.5;
+    </script>
+    <style>
+        .gradient-hero {
+            background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 100%);
         }
-        @keyframes seismic-scroll {
-            from { background-position-x: 0; }
-            to { background-position-x: -100px; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .seismic-canvas-bg {
+            background-color: #0f172a;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white">
 
-    <div class="seismic-line"></div>
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="triggerConfetti()">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-md animate-bounce">
+                        <i class="fa-solid fa-earth-asia text-lg"></i>
+                    </div>
+                    <span class="font-black text-lg text-slate-900 tracking-tight hover:text-brand-600 transition-colors">暑期地球物理 × CLIL 探究</span>
+                </div>
+                <nav class="hidden md:flex space-x-6 text-sm font-semibold">
+                    <a href="#overview" class="text-slate-600 hover:text-brand-600 transition-colors">課程概述</a>
+                    <a href="#simulators" class="text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1"><i class="fa-solid fa-gamepad"></i> 互動實驗室</a>
+                    <a href="#schedule" class="text-slate-600 hover:text-brand-600 transition-colors">週次進度</a>
+                    <a href="#core-skills" class="text-slate-600 hover:text-brand-600 transition-colors">核心重點</a>
+                    <a href="#resources" class="text-slate-600 hover:text-brand-600 transition-colors">參考資源</a>
+                </nav>
+                <div class="md:hidden">
+                    <button id="menu-btn" class="text-slate-600 hover:text-slate-900 focus:outline-none p-2">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2">
+            <a href="#overview" class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">課程概述</a>
+            <a href="#simulators" class="block px-3 py-2 rounded-lg text-amber-600 font-semibold hover:bg-amber-50"><i class="fa-solid fa-gamepad"></i> 互動實驗室</a>
+            <a href="#schedule" class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">週次進度</a>
+            <a href="#core-skills" class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">核心重點</a>
+            <a href="#resources" class="block px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">參考資源</a>
+        </div>
+    </header>
 
-    <div class="container" id="content-box">
-        <h1>我的學習心得：<br>地震與 AI 的探索</h1>
-        <p>這門課結合概念與實作，讓我更加瞭解<span class="highlight-eq">地震</span>，以及地震是如何發生的。</p>
-        <p>我也學習使用 <span class="highlight-ai">AI</span> 幫助我分析一些地震資訊，讓學習變得更容易。</p>
-        <p>在這門課之前，我對地震瞭解不多，上完這門課後，我更加瞭解地震和自然災害。</p>
-        <p>總體來說，我學到了很多，我覺得這對我來說是一次很有用、也很有趣的學習經驗。</p>
+    <!-- Hero Banner -->
+    <section class="gradient-hero text-white py-20 px-4 relative overflow-hidden">
+        <!-- Background Grid Graphic -->
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]"></div>
         
-        <button class="btn" onclick="toggleEarthquake()">觸發模擬地震 🌍</button>
-    </div>
-
-    <script>
-        function toggleEarthquake() {
-            const body = document.body;
-            const btn = document.querySelector('.btn');
-            const seismicLine = document.querySelector('.seismic-line');
+        <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30 text-xs font-bold tracking-wide uppercase backdrop-blur-md">
+                <i class="fa-solid fa-sparkles text-amber-400"></i> GitHub Pages 互動探索網頁
+            </div>
             
-            if (body.classList.contains('shake')) {
-                // Stop earthquake
-                body.classList.remove('shake');
-                btn.innerHTML = "觸發模擬地震 🌍";
-                btn.style.background = "linear-gradient(45deg, #ff512f, #dd2476)";
-                seismicLine.style.animationDuration = "3s";
-                seismicLine.style.opacity = "0.5";
-                seismicLine.style.strokeOpacity = "0.3";
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-tight">
+                地球物理探勘技術<br>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-sky-300 to-emerald-400">
+                    與 CLIL 雙語防災探究
+                </span>
+            </h1>
+            
+            <p class="text-slate-300 text-base sm:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                結合實體折射震測、AI 代理工具自動化開發，以及 CLIL 雙語跨領域教案的全方位學習歷程！
+            </p>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-4">
+                <a href="#simulators" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold px-7 py-3.5 rounded-xl shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i> 體驗互動實驗室
+                </a>
+                <button onclick="triggerConfetti()" class="bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 font-semibold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-gift text-pink-400"></i> 慶祝與驚喜
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+
+        <!-- 1. 課程概述 Overview -->
+        <section id="overview" class="scroll-mt-24">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="text-2xl text-brand-600"><i class="fa-solid fa-compass"></i></span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">一、 課程概述</h2>
+            </div>
+            
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-all">
+                <p class="text-slate-700 leading-relaxed text-base sm:text-lg">
+                    本課程為期五週（<span class="font-bold text-brand-600">7/17 - 8/14</span>），核心主軸從環境建置與工具啟動，經折射震測與資料分析，最終發展至 <span class="font-bold text-amber-600">CLIL（內容和語言整合學習）</span>防災探究與英文成果發表。課程內容結合地球科學專業知識、資訊科技工具以及雙語教學設計，旨在全面實務應用地球物理探勘技術與教學發展。
+                </p>
+
+                <!-- Interactive Mini Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                    <div class="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-center transform hover:scale-105 transition-all">
+                        <div class="text-2xl font-black text-brand-600 mb-1">5 週</div>
+                        <div class="text-xs font-semibold text-slate-500">探究週期</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-100 text-center transform hover:scale-105 transition-all">
+                        <div class="text-2xl font-black text-amber-600 mb-1">折射震測</div>
+                        <div class="text-xs font-semibold text-slate-500">地層結構探測</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-purple-50/80 border border-purple-100 text-center transform hover:scale-105 transition-all">
+                        <div class="text-2xl font-black text-purple-600 mb-1">AI 代理</div>
+                        <div class="text-xs font-semibold text-slate-500">Antigravity IDE</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-100 text-center transform hover:scale-105 transition-all">
+                        <div class="text-2xl font-black text-emerald-600 mb-1">CLIL 雙語</div>
+                        <div class="text-xs font-semibold text-slate-500">防災專題教學</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW: Interactive Interactive Simulators (趣味互動實驗室) -->
+        <section id="simulators" class="scroll-mt-24">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="text-2xl text-amber-500"><i class="fa-solid fa-gamepad"></i></span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">趣味互動實驗室</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Interactive Tool 1: Seismic Wave Simulator -->
+                <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full border border-amber-500/30"><i class="fa-solid fa-wave-square mr-1"></i> 震波模擬器</span>
+                            <span class="text-xs text-slate-400">折射震測原理模擬</span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">地震波傳播動畫示範</h3>
+                        <p class="text-xs text-slate-400 mb-4">點擊下方按鈕引爆人工震源，觀察直達波（表面）與折射波（深層高速地層）的抵達時差！</p>
+                        
+                        <!-- Canvas Screen -->
+                        <div class="relative rounded-xl overflow-hidden border border-slate-700 mb-4 h-40 bg-slate-950">
+                            <canvas id="seismicCanvas" class="w-full h-full"></canvas>
+                            <div id="seismicLegend" class="absolute top-2 right-2 text-[10px] bg-slate-900/80 p-2 rounded text-slate-300 space-y-1">
+                                <div class="flex items-center gap-1.5"><span class="w-2.5 h-0.5 bg-sky-400 inline-block"></span> 直達波 (Direct Wave)</div>
+                                <div class="flex items-center gap-1.5"><span class="w-2.5 h-0.5 bg-amber-400 inline-block"></span> 折射波 (Refracted Wave)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <button onclick="triggerSeismicSim()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-burst"></i> 觸發人工震源 (Trigger Source)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Tool 2: Building Resonance Simulator -->
+                <div id="buildingCard" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold bg-purple-100 text-purple-700 px-3 py-1 rounded-full"><i class="fa-solid fa-building-user mr-1"></i> 共振實驗室</span>
+                            <span class="text-xs text-slate-500">黏土與竹籤建築模擬</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">建築共振反應測試 (Resonance)</h3>
+                        <p class="text-xs text-slate-600 mb-4">選擇地震波頻率，觀察不同高度大樓（低層 vs 高層）的搖晃程度：</p>
+                        
+                        <!-- Simulation Stage -->
+                        <div class="h-40 bg-slate-100 rounded-2xl border border-slate-200 flex items-end justify-center gap-12 p-4 mb-4 relative overflow-hidden">
+                            <!-- Low-rise building -->
+                            <div class="flex flex-col items-center">
+                                <div id="lowBuilding" class="w-12 h-16 bg-sky-500 rounded-t-md flex flex-col justify-around p-1 text-white text-[10px] text-center font-bold shadow-md transition-transform origin-bottom">
+                                    <span>低樓層</span>
+                                    <i class="fa-regular fa-hospital text-base"></i>
+                                </div>
+                                <span class="text-[10px] text-slate-500 mt-1">高頻震波反應強</span>
+                            </div>
+
+                            <!-- High-rise building -->
+                            <div class="flex flex-col items-center">
+                                <div id="highBuilding" class="w-12 h-28 bg-indigo-600 rounded-t-md flex flex-col justify-around p-1 text-white text-[10px] text-center font-bold shadow-md transition-transform origin-bottom">
+                                    <span>高樓層</span>
+                                    <i class="fa-solid fa-city text-lg"></i>
+                                </div>
+                                <span class="text-[10px] text-slate-500 mt-1">低頻震波反應強</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Frequency Control Buttons -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="testResonance('high')" class="bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-bolt-lightning"></i> 觸發高頻震波 (短週期)
+                        </button>
+                        <button onclick="testResonance('low')" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-water"></i> 觸發低頻震波 (長週期)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. 週次進度 Schedule -->
+        <section id="schedule" class="scroll-mt-24">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="text-2xl text-brand-600"><i class="fa-solid fa-calendar-week"></i></span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">二、 五週課程進度與重點摘要</h2>
+            </div>
+            
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-4 px-6 w-1/4">週次 / 日期</th>
+                                <th class="py-4 px-6 w-2/5">課程主題</th>
+                                <th class="py-4 px-6 w-1/3">實作任務</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <tr class="hover:bg-sky-50/50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-brand-600 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span> W01 (7/17)
+                                </td>
+                                <td class="py-4 px-6 text-slate-800 font-semibold">課程緣起、環境建置、工具介紹</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-xs">
+                                        完成個人地震學課程工具包
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-brand-600 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span> W02 (7/24)
+                                </td>
+                                <td class="py-4 px-6 text-slate-800 font-semibold">折射震測原理：探測校園底下的構造</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-xs">
+                                        完成簡易震測實作
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-brand-600 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span> W03 (7/31)
+                                </td>
+                                <td class="py-4 px-6 text-slate-800 font-semibold">AI 工具使用：Antigravity IDE</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-xs">
+                                        完成震源定位教案簡報
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-brand-600 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span> W04 (8/7)
+                                </td>
+                                <td class="py-4 px-6 text-slate-800 font-semibold">折射震測原理 CLIL 教學、Antigravity 報告與網頁、報告練習</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-xs">
+                                        Antigravity 報告網頁建立
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-sky-50/50 transition-colors">
+                                <td class="py-4 px-6 font-bold text-brand-600 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> W05 (8/14)
+                                </td>
+                                <td class="py-4 px-6 text-slate-800 font-semibold">CLIL 防災探究（2）：地震波頻率與地層探測分析</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-xs">
+                                        地震探測分析報告
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 核心技術與理論學習重點 Core Skills -->
+        <section id="core-skills" class="scroll-mt-24">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="text-2xl text-brand-600"><i class="fa-solid fa-lightbulb"></i></span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">三、 核心技術與理論學習重點</h2>
+            </div>
+
+            <!-- Tab Filter Buttons -->
+            <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-4 mb-8">
+                <button onclick="filterTab('all')" id="tab-btn-all" class="tab-btn active font-bold text-sm px-4 py-2 rounded-xl bg-brand-600 text-white transition-all shadow-sm">全部重點</button>
+                <button onclick="filterTab('cloud')" id="tab-btn-cloud" class="tab-btn text-sm font-semibold px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">網頁部署</button>
+                <button onclick="filterTab('ai')" id="tab-btn-ai" class="tab-btn text-sm font-semibold px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">AI 代理與自動化</button>
+                <button onclick="filterTab('geophysics')" id="tab-btn-geophysics" class="tab-btn text-sm font-semibold px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">地球物理震測</button>
+                <button onclick="filterTab('clil')" id="tab-btn-clil" class="tab-btn text-sm font-semibold px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">CLIL 雙語教案</button>
+            </div>
+
+            <!-- Content Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Skill Card 1 -->
+                <div class="skill-card cloud bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">1. 網頁建置與雲端部署</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        結合大語言模型（如 Gemini）輔助生成網頁程式碼 (<code class="bg-slate-100 text-pink-600 px-1.5 py-0.5 rounded text-xs font-mono">index.html</code>)，並將其部署至 <span class="font-bold text-slate-800">GitHub Pages</span>。透過 GitHub 免費雲端空間建立對外服務的靜態網頁，作為技術文件、程式碼及教案的展示平台。
+                    </p>
+                </div>
+
+                <!-- Skill Card 2 -->
+                <div class="skill-card ai bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">2. AI 代理與自動化工具應用</h3>
+                    <ul class="space-y-2 text-slate-600 text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-circle-check text-purple-500 mt-1 text-xs"></i>
+                            <div><strong class="text-slate-800">Google Antigravity IDE：</strong>作為可直接操作電腦本機與環境檔案的 AI 代理。能自動生成內容並寫入資料夾，支援檔案編修與視覺化檢視。</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-circle-check text-purple-500 mt-1 text-xs"></i>
+                            <div><strong class="text-slate-800">Google Apps Script (GAS)：</strong>串接 Google 表單與試算表。當學生填寫表單繳交期末報告與 Email 後，自動收集資料並同步寄發確認信件。</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Skill Card 3 -->
+                <div class="skill-card geophysics bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-mountain-sun"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">3. 地球物理震測實驗與原理</h3>
+                    <ul class="space-y-2 text-slate-600 text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-angle-right text-amber-500 mt-1 font-bold"></i>
+                            <div><strong class="text-slate-800">折射震測實務：</strong>不破壞地表下產生人工震源與佈設地震儀陣列，探測地下層狀結構。</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-angle-right text-amber-500 mt-1 font-bold"></i>
+                            <div><strong class="text-slate-800">震波傳播特性分析：</strong>接收直達波與折射波。當測點距離較遠時，因折射波進入深層高速地層，到達時間早於直達波。</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-angle-right text-amber-500 mt-1 font-bold"></i>
+                            <div><strong class="text-slate-800">建築共振反應：</strong>透過黏土與竹籤物理模擬，實證不同高度建築物在不同頻率震波下的動態反應差異。</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Skill Card 4 -->
+                <div class="skill-card clil bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-language"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">4. CLIL 雙語教案開發與提示詞工程</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-3">
+                        善用國外開源資源（如 IRIS 平台），結合提示詞工程引導 AI 產出適合國小高年級（5~6年級）的雙語教案設計：
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-700">
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-500"></i> 引起動機 Warm-up</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-video text-sky-500"></i> 影音解析 Focus</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-book text-emerald-500"></i> 雙語能量站 單字</div>
+                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 flex items-center gap-1.5"><i class="fa-solid fa-gamepad text-purple-500"></i> 互動挑戰與反思</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. 參考資源清單 Resources -->
+        <section id="resources" class="scroll-mt-24">
+            <div class="flex items-center space-x-3 mb-6">
+                <span class="text-2xl text-brand-600"><i class="fa-solid fa-link"></i></span>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900">四、 參考資源清單</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <a href="https://oceanicdayi.github.io/Utaipei_2026_summer/" target="_blank" rel="noopener noreferrer" class="group bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-brand-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg group-hover:bg-brand-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 group-hover:text-brand-600 transition-colors">課程網頁</div>
+                            <div class="text-xs text-slate-500">2026 暑期地球物理課程總覽</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 group-hover:text-brand-600 transition-colors text-sm"></i>
+                </a>
+
+                <a href="https://www.iris.edu/hq/inclass/#language[]=1" target="_blank" rel="noopener noreferrer" class="group bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-teal-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-lg group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 group-hover:text-teal-600 transition-colors">IRIS 教學資源平台</div>
+                            <div class="text-xs text-slate-500">IRIS In-Class 地震學教學多媒體</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 group-hover:text-teal-600 transition-colors text-sm"></i>
+                </a>
+
+                <a href="https://github.com/oceanicdayi/Utaipei_2026_summer/blob/main/%E6%95%99%E6%A1%88_%E5%BB%BA%E7%AF%89%E5%85%B1%E6%8C%AF_%E5%9B%9B%E7%AF%80%E8%AA%B2.pdf" target="_blank" rel="noopener noreferrer" class="group bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-red-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-lg group-hover:bg-red-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-file-pdf"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 group-hover:text-red-600 transition-colors">建築共振教學檔案</div>
+                            <div class="text-xs text-slate-500">建築共振四節課教案 (PDF)</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 group-hover:text-red-600 transition-colors text-sm"></i>
+                </a>
+
+                <a href="https://drive.google.com/drive/folders/1RBowon_un8n6EWAv3NdcdLRkS52jRRlk" target="_blank" rel="noopener noreferrer" class="group bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg hover:border-amber-400 transition-all flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 group-hover:text-amber-600 transition-colors">GAS 自動化資料夾</div>
+                            <div class="text-xs text-slate-500">Google Form 與 Sheet 專案資源</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 group-hover:text-amber-600 transition-colors text-sm"></i>
+                </a>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 mt-20">
+        <div class="max-w-5xl mx-auto px-4 text-center space-y-4">
+            <div class="flex justify-center space-x-6 text-slate-400 text-xl">
+                <a href="https://github.com/oceanicdayi" target="_blank" class="hover:text-white transition-colors"><i class="fa-brands fa-github"></i></a>
+                <a href="https://oceanicdayi.github.io/Utaipei_2026_summer/" target="_blank" class="hover:text-white transition-colors"><i class="fa-solid fa-globe"></i></a>
+            </div>
+            <p class="text-xs sm:text-sm">
+                © 2026 暑期地球物理與 CLIL 防災探究課程心得 | Hosted on <a href="https://pages.github.com/" target="_blank" class="text-brand-400 hover:underline">GitHub Pages</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Confetti Celebration Effect
+        function triggerConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // Tab Filter Logic
+        function filterTab(category) {
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white', 'shadow-sm');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+
+            const activeBtn = document.getElementById('tab-btn-' + category);
+            activeBtn.classList.remove('bg-slate-100', 'text-slate-600');
+            activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow-sm');
+
+            const cards = document.querySelectorAll('.skill-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.classList.contains(category)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // --- Interactive Simulator 1: Seismic Wave Animation Canvas ---
+        const canvas = document.getElementById('seismicCanvas');
+        const ctx = canvas.getContext('2d');
+        let waveAnimId = null;
+        let waves = [];
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawSeismicLayers();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawSeismicLayers() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Layer 1 (Low speed ground)
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.5);
+
+            // Layer 2 (High speed bed rock)
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
+
+            // Layer Line
+            ctx.strokeStyle = '#64748b';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.5);
+            ctx.lineTo(canvas.width, canvas.height * 0.5);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Text Labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('地表淺層 (慢速層 V1)', 10, 20);
+            ctx.fillText('深層基岩 (高速層 V2 > V1)', 10, canvas.height * 0.5 + 20);
+        }
+
+        function triggerSeismicSim() {
+            waves = [
+                { type: 'direct', r: 0, speed: 2, color: '#38bdf8' },
+                { type: 'refracted', r: 0, speed: 4.5, color: '#fbbf24' }
+            ];
+
+            if (waveAnimId) cancelAnimationFrame(waveAnimId);
+
+            function animate() {
+                drawSeismicLayers();
+
+                // Draw source point
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(20, canvas.height * 0.5, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                let active = false;
+                waves.forEach(w => {
+                    if (w.r < canvas.width * 1.2) {
+                        active = true;
+                        w.r += w.speed;
+
+                        ctx.strokeStyle = w.color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        if (w.type === 'direct') {
+                            ctx.arc(20, canvas.height * 0.5, w.r, -Math.PI / 2, 0);
+                        } else {
+                            ctx.arc(20, canvas.height * 0.5, w.r, 0, Math.PI / 2);
+                        }
+                        ctx.stroke();
+                    }
+                });
+
+                if (active) {
+                    waveAnimId = requestAnimationFrame(animate);
+                }
+            }
+
+            animate();
+        }
+
+        setTimeout(resizeCanvas, 200);
+
+        // --- Interactive Simulator 2: Building Resonance Test ---
+        function testResonance(freq) {
+            const lowB = document.getElementById('lowBuilding');
+            const highB = document.getElementById('highBuilding');
+
+            lowB.className = lowB.className.replace(/animate-shake/g, '');
+            highB.className = highB.className.replace(/animate-shake/g, '');
+
+            void lowB.offsetWidth; // trigger reflow
+            void highB.offsetWidth;
+
+            if (freq === 'high') {
+                // High frequency shakes low-rise building
+                lowB.classList.add('animate-shake');
             } else {
-                // Start earthquake
-                body.classList.add('shake');
-                btn.innerHTML = "停止地震 🛑";
-                btn.style.background = "linear-gradient(45deg, #11998e, #38ef7d)";
-                seismicLine.style.animationDuration = "0.5s"; // make the line move faster
-                seismicLine.style.opacity = "1";
+                // Low frequency shakes high-rise building
+                highB.classList.add('animate-shake');
             }
         }
     </script>
